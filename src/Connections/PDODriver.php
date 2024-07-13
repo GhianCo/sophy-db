@@ -4,25 +4,12 @@ namespace SophyDB\Connections;
 
 use PDO;
 
-class PdoConn implements IDriver
+class PdoDriver implements IDBDriver
 {
     protected ?PDO $pdo;
 
     const FETCH_CLASS = \PDO::FETCH_CLASS;
     const FETCH_ASSOC = \PDO::FETCH_ASSOC;
-
-    private $IS_CONNECT = false;
-
-    private $DRIVER = '';
-    private $SERVER_HOST = '';
-    private $SERVER_PORT = '';
-
-    private $DATABASE_NAME = '';
-    private $USERNAME = '';
-    private $PASSWORD = '';
-    private $FETCH = '';
-    private $CHARSET = 'utf8mb4';
-    private $COLLATION = '';
 
     public function connect(
         string $protocol,
@@ -32,17 +19,8 @@ class PdoConn implements IDriver
         string $username,
         string $password
     ) {
-        $this->pdo = new PDO('', $username, $password);
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $this->pdo->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES '$this->CHARSET' COLLATE '$this->COLLATION'");
 
-        //if (DB::$CHANGE_ONCE) {
-        //    DB::$CHANGE_ONCE = false;
-        //    DB::$USE_DATABASE = 'main';
-        //}
-
-        $this->IS_CONNECT = true;
-    }
+     }
 
     /**
      * Returns the PDO object for the database connection.

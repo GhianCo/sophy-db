@@ -2,15 +2,20 @@
 
 namespace SophyDB\DML;
 
-use SophyDB\Connections\PdoConn;
+use SophyDB\SQLCommands\MySQL\Select;
 
-trait Parser
+class Parser
 {
+  private Select $select;
 
-  protected function methodInMaker(array $list, $callback)
+  public function __construct($select = null)
+  {
+    $this->select = $select;
+  }
+  public function methodInMaker(array $list, $callback)
   {
     foreach ($list as $item) {
-      $param_name = $this->addToParamAutoName($item);
+      $param_name = $this->select->binding->addToParamAutoName($item);
       $callback($param_name);
     }
   }
@@ -24,7 +29,7 @@ trait Parser
     $type = '';
 
     if ($count == 1) {
-      $table = $this->table;
+      $table = $this->select->dml->table;
       $column = $array[0];
       $type = 'column';
     } else if ($count == 2) {
@@ -42,20 +47,11 @@ trait Parser
     return ['name' => "$table.$column", 'table' => $table, 'column' => $column, 'type' => $type];
   }
 
-  protected function fixOperatorAndValue(&$operator, &$value)
+  public function fixOperatorAndValue(&$operator, &$value)
   {
     if ($value == false || $value == null) {
       $value = $operator;
       $operator = '=';
-    }
-  }
-
-  public function get_value($param, $name)
-  {
-    if ($this->conn->getFetch() == PdoConn::FETCH_CLASS) {
-      return $param->{$name};
-    } else {
-      return $param[$name];
     }
   }
 }

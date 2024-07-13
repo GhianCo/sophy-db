@@ -20,6 +20,6 @@ final class Raw
 
   public function getRawValues()
   {
-    return $this->query;
+    return $this->binds;
   }
 }

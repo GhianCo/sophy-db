@@ -2,7 +2,7 @@
 
 namespace SophyDB\Connections;
 
-interface IDriver {
+interface IDBDriver {
 
     const UTF8 = 'utf8';
     const UTF8_BIN = 'utf8_bin';

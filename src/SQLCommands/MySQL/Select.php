@@ -3,77 +3,178 @@
 namespace SophyDB\SQLCommands\MySQL;
 
 use SophyDB\DML\Binding;
+use SophyDB\DML\DML;
 use SophyDB\DML\Parser;
-use SophyDB\SophyDB;
+use SophyDB\SQLCommands\Having;
+use SophyDB\SQLCommands\Join;
+use SophyDB\SQLCommands\OrderBy;
+use SophyDB\SQLCommands\Where;
 use stdClass;
 
-trait Select
+class Select
 {
-    use Parser;
-    use AggregateFn;
-    use Binding;
-
     public $stringArray = [];
+    public $pk = 'id';
 
-    protected static $binds = [];
-    protected $table;
-    protected $pk = 'id';
+    public DML $dml;
+    public AggregateFn $aggregateFn;
+    public Join $join;
+    public Where $where;
+    public Having $having;
+    public OrderBy $orderBy;
+
+    public Binding $binding;
+    public Parser $parser;
+
+    public function __construct(DML $dml)
+    {
+        $this->dml = $dml;
+        $this->aggregateFn = new AggregateFn($this);
+        $this->join = new Join($this);
+        $this->where = new Where($this);
+        $this->having = new Having($this);
+        $this->orderBy = new OrderBy($this);
+        $this->binding = new Binding($this);
+        $this->parser = new Parser($this);
+    }
 
     public function setTable($table)
     {
-        $this->table = $table;
+        $this->dml->table = $table;
     }
 
-    public function select(...$args)
+    public function cols(...$cols)
     {
-        $this->clearSource('DISTINCT');
+        $this->binding->clearSource('DISTINCT');
 
-        if (count($args) == 1 && !is_string($args[0]) && !$args[0] instanceof Raw) {
-            if (is_array($args[0])) {
-                foreach ($args[0] as $key => $arg) {
-                    $args[$key] = $this->fixColumnName($arg)['name'];
+        if (count($cols) == 1 && !is_string($cols[0]) && !$cols[0] instanceof Raw) {
+            if (is_array($cols[0])) {
+                foreach ($cols[0] as $key => $arg) {
+                    $cols[$key] = $this->parser->fixColumnName($arg)['name'];
                 }
 
-                $this->addToSourceArray('DISTINCT', implode(',', $args));
-            } elseif (is_callable($args[0])) {
-                $args[0]($this);
-                $this->addToSourceArray('DISTINCT', $this->getString());
+                $this->binding->addToSourceArray('DISTINCT', implode(',', $cols));
+            } elseif (is_callable($cols[0])) {
+                $aggregateFn = new AggregateFn($this);
+                $cols[0]($aggregateFn);
+                $this->binding->addToSourceArray('DISTINCT', $this->getString());
             }
         } else {
-            foreach ($args as $key => $arg) {
+            foreach ($cols as $key => $arg) {
                 if ($arg instanceof Raw) {
-                    $args[$key] = $this->makeRaw($arg->getRawQuery(), $arg->getRawValues());
+                    $cols[$key] = $this->makeRaw($arg->getRawQuery(), $arg->getRawValues());
                 } else {
-                    $args[$key] = $this->fixColumnName($arg)['name'];
+                    $cols[$key] = $this->parser->fixColumnName($arg)['name'];
                 }
             }
 
-            $this->addToSourceArray('DISTINCT', implode(',', $args));
+            if (strlen($this->getString())) {
+                $this->binding->addToSourceArray('DISTINCT', $this->getString());
+            } else {
+                $this->binding->addToSourceArray('DISTINCT', implode(',', $cols));
+            }
         }
         return $this;
     }
 
+    /**
+     * Retrieve the "count" result of the query.
+     *
+     * @param  string  $columns
+     * @return mixed
+     */
+    public function count($column = '*')
+    {
+        $this->cols(function ($query) use ($column) {
+            $query->count($column)->as('count');
+        });
+
+        return $this->dml->getValue($this->first(), 'count');
+    }
 
     /**
-     * Get a single column's value from the first result of a query.
+     * Retrieve the sum of the values of a given column.
+     *
+     * @param  string  $columns
+     * @return int
+     */
+    public function sum($column = '*')
+    {
+        $this->cols(function ($query) use ($column) {
+            $query->sum($column)->as('sum');
+        });
+
+        return $this->dml->getValue($this->first(), 'sum');
+    }
+
+    /**
+     * Retrieve the average of the values of a given column.
      *
      * @param  string  $column
      * @return mixed
      */
-    public function value($column = '*')
+    public function avg($column = '*')
     {
-        return $this->get_value($this->first(), $column);
+        $this->cols(function ($query) use ($column) {
+            $query->avg($column)->as('avg');
+        });
+
+        return $this->dml->getValue($this->first(), 'avg');
     }
 
-    public function first($columns = [])
+    /**
+     * Retrieve the average of the values of a given column.
+     *
+     * @param  string  $column
+     * @return mixed
+     */
+    public function min($column = '*')
+    {
+        $this->cols(function ($query) use ($column) {
+            $query->min($column)->as('min');
+        });
+
+        return $this->dml->getValue($this->first(), 'min');
+    }
+
+    /**
+     * Retrieve the average of the values of a given column.
+     *
+     * @param  string  $column
+     * @return mixed
+     */
+    public function max($column = '*')
+    {
+        $this->cols(function ($query) use ($column) {
+            $query->max($column)->as('max');
+        });
+
+        return $this->dml->getValue($this->first(), 'max');
+    }
+
+    public function colsRaw($query, array $values = [])
+    {
+        $raw = new Raw;
+        $raw->setRawData($query, $values);
+        $this->cols($raw);
+        return $this;
+    }
+
+    public function limit(int $value)
+    {
+        $this->binding->addToSourceArray('LIMIT', "LIMIT $value");
+        return $this;
+    }
+
+    public function first($cols = [])
     {
         $db = $this->limit(1);
 
-        if (count($columns)) {
-            $db->select($columns);
+        if (count($cols)) {
+            $db->cols($cols);
         }
 
-        $array = $db->get();
+        $array = $db->dml->get();
 
         if (count($array) == 1) {
             return $array[0];
@@ -82,89 +183,9 @@ trait Select
         return false;
     }
 
-    public function orderByCount($column, $direction = 'asc')
-    {
-        $column = $this->fix_column_name($column)['name'];
-        $this->addToSourceArray('ORDER_BY', "ORDER BY COUNT($column) $direction");
-        return $this;
-    }
-
-
-    public function inRandomOrder()
-    {
-        $this->addToSourceArray('ORDER_BY', "ORDER BY RAND()");
-        return $this;
-    }
-
-
-    public function latest($column = 'created_at')
-    {
-        $this->orderBy($column, 'DESC');
-        return $this;
-    }
-
-    public function oldest($column = 'created_at')
-    {
-        $this->orderBy($column, 'ASC');
-        return $this;
-    }
-
-    public function limit(int $value)
-    {
-        $this->addToSourceArray('LIMIT', "LIMIT $value");
-        return $this;
-    }
-
-    public function find($id, $columns = [])
-    {
-        return $this->where($this->pk, $id)->first($columns);
-    }
-
-    public function pluck($column, $key = null)
-    {
-        $list = $this->get();
-        $result = [];
-        foreach ($list as $item) {
-
-            if ($key == null) {
-                $result[] = $this->get_value($item, $column);
-            } else {
-                $result[$this->get_value($item, $key)] = $this->get_value($item, $column);
-            }
-        }
-
-        return $result;
-    }
-
-    public function orderBy($columns, $direction = 'asc')
-    {
-        $column_string = '';
-
-        if (is_array($columns)) {
-            $array_string = [];
-
-            foreach ($columns as $column) {
-
-                if (is_array($column) && count($column) == 2) {
-                    $array_string[] = $this->fixColumnName($column[0])['name'] . " " . $column[1];
-                } else {
-                    $array_string[] = $this->fixColumnName($column)['name'] . " $direction";
-                }
-            }
-
-            $column_string = implode(',', $array_string);
-            $this->addToSourceArray('ORDER_BY', "ORDER BY $column_string");
-        } else {
-            $column_string = $this->fixColumnName($columns)['name'];
-            $this->addToSourceArray('ORDER_BY', "ORDER BY $column_string $direction");
-        }
-
-        return $this;
-    }
-
     public function chunk($count, callable $callback)
     {
-        $list = $this->get();
+        $list = $this->dml->get();
 
         do {
             $return = $callback(array_splice($list, 0, $count));
@@ -176,37 +197,27 @@ trait Select
 
     public function each(callable $callback)
     {
-        $list = $this->get();
+        $list = $this->dml->get();
 
         do {
             $callback(array_splice($list, 0, 1)[0]);
         } while (count($list));
     }
 
-    public function is($column, $boolean = true)
+    public function pluck($column, $key = null)
     {
-        return $this->where($column, $boolean);
-    }
+        $list = $this->dml->get();
+        $result = [];
+        foreach ($list as $item) {
 
-    /**
-     * Determine if any rows exist for the current query.
-     *
-     * @return bool
-     */
-    public function exists()
-    {
-        $result = $this->first();
-        return $result ? true : false;
-    }
+            if ($key == null) {
+                $result[] = $this->dml->getValue($item, $column);
+            } else {
+                $result[$this->dml->getValue($item, $key)] = $this->dml->getValue($item, $column);
+            }
+        }
 
-    /**
-     * Determine if no rows exist for the current query.
-     *
-     * @return bool
-     */
-    public function doesntExist()
-    {
-        return !$this->exists();
+        return $result;
     }
 
     public function paginate(int $take = 15, int $page_number = null)
@@ -216,7 +227,7 @@ trait Select
         }
 
         $list = $this->page($page_number - 1, $take);
-        $count = $this->clone()->count();
+        $count = $this->dml->clone()->count();
 
         $params = new stdClass;
         $params->last_page = ceil($count / $take);
@@ -258,7 +269,7 @@ trait Select
      */
     public function offset(int $offset)
     {
-        $this->addToSourceArray('OFFSET', "OFFSET $offset");
+        $this->binding->addToSourceArray('OFFSET', "OFFSET $offset");
         return $this;
     }
 
@@ -276,7 +287,60 @@ trait Select
     public function page(int $page_number, int $take)
     {
         $offset = $page_number * $take;
-        return $this->take($take)->offset($offset)->get();
+        return $this->take($take)->offset($offset)->dml->get();
+    }
+
+    public function raw($query, array $values = [])
+    {
+        $raw = new Raw;
+        $raw->setRawData($query, $values);
+        return $raw;
+    }
+
+    public function makeRaw($query, $values)
+    {
+        $index = 0;
+
+        do {
+
+            $find = strpos($query, '?');
+
+            if ($find === false) {
+                break;
+            }
+
+            $param_name = $this->binding->bindParamAutoName($values[$index]);
+            $query = substr_replace($query, $param_name, $find, 1);
+            $index++;
+        } while ($find !== false);
+
+        return $query;
+    }
+
+    public function makeSelectQueryString()
+    {
+        $table = $this->dml->table;
+        $this->binding->addToSourceArray('SELECT', "SELECT");
+        $this->binding->addToSourceArray('FROM', "FROM `$table`");
+
+        if (count($this->binding->getSourceValueItem('DISTINCT')) == 0) {
+            $this->cols('*');
+        }
+        return $this->makeSourceValueStrign();
+    }
+
+    public function makeSourceValueStrign()
+    {
+        ksort($this->dml->sourceValue);
+
+        $array = [];
+        foreach ($this->dml->sourceValue as $value) {
+            if (is_array($value)) {
+                $array[] = implode(' ', $value);
+            }
+        }
+
+        return implode(' ', $array);
     }
 
     /**
@@ -289,224 +353,12 @@ trait Select
     {
         $arr = [];
         foreach ($groups as $group) {
-            $arr[] = $this->fixColumnName($group)['name'];
+            $arr[] = $this->parser->fixColumnName($group)['name'];
         }
-        $this->addToSourceArray('GROUP_BY', "GROUP BY " . implode(',', $arr));
+        $this->binding->addToSourceArray('GROUP_BY', "GROUP BY " . implode(',', $arr));
         return $this;
     }
 
-
-    /**
-     * Add a "having" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @param  string  $boolean
-     * @return $this
-     */
-    public function having($column, $operator, $value = null, $boolean = 'and', $fn = '')
-    {
-        $this->addOperatorHaving($boolean);
-        $this->fixOperatorAndValue($operator, $value);
-        $column = $this->fixColumnName($column)['name'];
-
-        $array = $this->getSourceValueItem('HAVING');
-        $beginning = 'HAVING';
-
-        if (count($array) > 0) {
-            $beginning = '';
-        }
-
-        if (empty($fn)) {
-            $this->addToSourceArray('HAVING', "$beginning $column $operator $value");
-        } else {
-            $this->addToSourceArray('HAVING', "$beginning $fn($column) $operator $value");
-        }
-
-        return $this;
-    }
-
-    /**
-     * Add a "or having" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @return \Illuminate\Database\Query\Builder|static
-     */
-    public function orHaving($column, $operator, $value = null)
-    {
-        return $this->having($column, $operator, $value, 'OR');
-    }
-
-    /**
-     * Add a "having count()" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @return $this
-     */
-    public function havingCount($column, $operator, $value = null)
-    {
-        return $this->having($column, $operator, $value, 'AND', 'COUNT');
-    }
-
-    /**
-     * Add a "having sum()" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @return $this
-     */
-    public function havingSum($column, $operator, $value = null)
-    {
-        return $this->having($column, $operator, $value, 'AND', 'SUM');
-    }
-
-    /**
-     * Add a "having avg()" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @return $this
-     */
-    public function havingAvg($column, $operator, $value = null)
-    {
-        return $this->having($column, $operator, $value, 'AND', 'AVG');
-    }
-
-    /**
-     * Add a "or having count()" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @return $this
-     */
-    public function orHavingCount($column, $operator, $value = null)
-    {
-        return $this->having($column, $operator, $value, 'OR', 'COUNT');
-    }
-
-    /**
-     * Add a "or having sum()" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @return $this
-     */
-    public function orHavingSum($column, $operator, $value = null)
-    {
-        return $this->having($column, $operator, $value, 'OR', 'SUM');
-    }
-
-    /**
-     * Add a "or having avg()" clause to the query.
-     *
-     * @param  string  $column
-     * @param  string|null  $operator
-     * @param  string|null  $value
-     * @return $this
-     */
-    public function orHavingAvg($column, $operator, $value = null)
-    {
-        return $this->having($column, $operator, $value, 'OR', 'AVG');
-    }
-
-
-    public function havingRaw($sql, array $bindings = [], $boolean = 'AND')
-    {
-        $this->addOperatorHaving($boolean);
-
-        $array = $this->getSourceValueItem('HAVING');
-        $beginning = 'HAVING';
-
-        if (count($array) > 0) {
-            $beginning = '';
-        }
-        $raw = SophyDB::raw($sql, $bindings);
-        $raw = $this->makeRaw($raw->getRawQuery(), $raw->getRawValues());
-        $this->addToSourceArray('HAVING', "$beginning " . $raw);
-
-        return $this;
-    }
-
-    public function orHavingRaw($sql, array $bindings = [])
-    {
-        return $this->havingRaw($sql, $bindings, 'OR');
-    }
-
-    function makeRaw($query, $values)
-    {
-        $index = 0;
-
-        do {
-
-            $find = strpos($query, '?');
-
-            if ($find === false) {
-                break;
-            }
-
-            $param_name = $this->bindParamAutoName($values[$index]);
-            $query = substr_replace($query, $param_name, $find, 1);
-            $index++;
-        } while ($find !== false);
-
-        return $query;
-    }
-
-
-    public function join(...$args)
-    {
-        $query = $this->queryMakerJoin('INNER', $args);
-        $this->addToSourceArray('JOIN', $query);
-        return $this;
-    }
-
-    public function leftJoin(...$args)
-    {
-        $query = $this->queryMakerJoin('LEFT', $args);
-        $this->addToSourceArray('JOIN', $query);
-        return $this;
-    }
-
-    public function rightJoin(...$args)
-    {
-        $query = $this->queryMakerJoin('RIGHT', $args);
-        $this->addToSourceArray('JOIN', $query);
-        return $this;
-    }
-
-    public function fullJoin(...$args)
-    {
-        $query = $this->queryMakerJoin('FULL', $args);
-        $this->addToSourceArray('JOIN', $query);
-        return $this;
-    }
-
-    public function crossJoin($column)
-    {
-        $this->addToSourceArray('JOIN', "CROSS JOIN `$column`");
-        return $this;
-    }
-
-
-    protected function makeSelectQueryString()
-    {
-        $this->addToSourceArray('SELECT', "SELECT");
-        $this->addToSourceArray('FROM', "FROM `$this->table`");
-
-        if (count($this->getSourceValueItem('DISTINCT')) == 0) {
-            $this->select('*');
-        }
-        return $this->makeSourceValueStrign();
-    }
 
     public function getString()
     {

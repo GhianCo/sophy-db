@@ -2,28 +2,30 @@
 
 namespace SophyDB\SQLCommands\MySQL;
 
-use SophyDB\DML\Parser;
-
-trait AggregateFn
+class AggregateFn
 {
-    use Parser;
+    private Select $select;
+
+    public function __construct($select = null)
+    {
+        $this->select = $select;
+    }
 
     public function fn($type, $column)
     {
         if ($column != '*') {
-            $column = $this->fixColumnName($column)['name'];
+            $column = $this->select->parser->fixColumnName($column)['name'];
         }
 
-        $this->stringArray[] = "$type($column)";
+        $this->select->stringArray[] = "$type($column)";
     }
 
     public function field($column)
     {
-        $column = $this->fixColumnName($column)['name'];
-        $this->stringArray[] = $column;
-        return new AsField($this);
+        $column = $this->select->parser->fixColumnName($column)['name'];
+        $this->select->stringArray[] = $column;
+        return new AsField($this->select);
     }
-
 
     /**
      * Retrieve the "count" result of the query.
@@ -31,10 +33,10 @@ trait AggregateFn
      * @param  string  $columns
      * @return int
      */
-    public function countFn($column = '*')
+    public function count($column = '*')
     {
         $this->fn("COUNT", $column);
-        return new AsField($this);
+        return new AsField($this->select);
     }
 
     /**
@@ -43,10 +45,10 @@ trait AggregateFn
      * @param  string  $column
      * @return mixed
      */
-    public function sumFn($column = '*')
+    public function sum($column = '*')
     {
         $this->fn("SUM", $column);
-        return new AsField($this);
+        return new AsField($this->select);
     }
 
     /**
@@ -55,10 +57,10 @@ trait AggregateFn
      * @param  string  $column
      * @return mixed
      */
-    public function avgFn($column = '*')
+    public function avg($column = '*')
     {
         $this->fn("AVG", $column);
-        return new AsField($this);
+        return new AsField($this->select);
     }
 
 
@@ -68,10 +70,10 @@ trait AggregateFn
      * @param  string  $column
      * @return mixed
      */
-    public function maxFn($column)
+    public function max($column)
     {
         $this->fn("MAX", $column);
-        return new AsField($this);
+        return new AsField($this->select);
     }
 
     /**
@@ -80,9 +82,9 @@ trait AggregateFn
      * @param  string  $column
      * @return mixed
      */
-    public function minFn($column)
+    public function min($column)
     {
         $this->fn("MIN", $column);
-        return new AsField($this);
+        return new AsField($this->select);
     }
 }

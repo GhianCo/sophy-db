@@ -19,9 +19,9 @@ SophyDB::factory([
 ]);
 
 $allActivos = SophyDB::table('activo')->get();
-$oneActivo = SophyDB::table('activo')->where('activo_nombre', 'Jamil')->first();
-$oneActivoEmail = SophyDB::table('activo')->where('activo_nombre', 'Jamil')->value('activo_codigo');
-$activoFound = SophyDB::table('activo')->find(205);
+$oneActivo = SophyDB::table('activo')->where('activo_nombre', 'HP Probook 440 G8')->first();
+$oneActivoEmail = SophyDB::table('activo')->where('activo_nombre', 'HP Probook 440 G8')->value('activo_codigo');
+$activoFound = SophyDB::table('activo')->find(212);
 $names = SophyDB::table('activo')->pluck('activo_nombre', 'activo_codigo');
 
 SophyDB::table('activo')->orderBy('activo_nombre')->chunk(100, function ($activos) use ($chunks) {
@@ -38,59 +38,59 @@ $totalActivos = SophyDB::table('activo')->count();
 
 $maxCode = SophyDB::table('activo')->max('activo_id');
 
-$avg = SophyDB::table('activo')
-    ->where('activo_estado', 1)
-    ->avg('activo_id');
-
 $da = SophyDB::table('activo')->where('activo_id', 100000)->exists();
 
 $das = SophyDB::table('activo')->where('activo_id', 100000)->doesntExist();
 
 $activos = SophyDB::table('activo')
-    ->select('activo_nombre', 'activo_codigo')
+    ->cols('activo_nombre', 'activo_codigo')
     ->get();
 
 $activos2 = SophyDB::table('activo')
-    ->select(['activo_nombre', 'activo_codigo'])
+    ->cols(['activo_nombre', 'activo_codigo'])
     ->get();
+
+$avg = SophyDB::table('activo')
+    ->where('activo_activo', 1)
+    ->avg('activo_id');
 
 $page = 1;
 
 $list = SophyDB::table('activo')
-    ->is('activo_estado')
+    ->is('activo_activo')
     ->paginate(10, $page);
 
 $activosGroup = SophyDB::table('activo')
-    ->select(SophyDB::raw('count(*) as activo_count, activo_estado'))
-    ->where('activo_estado', 1)
+    ->colsRaw('count(*) as activo_count, activo_activo')
+    ->where('activo_activo', 1)
     ->groupBy('activo_nombre')
     ->get();
 
 $activosOthers = SophyDB::table('activo')
-    ->select(function ($query) {
-        $query->countFn('*')->as('activo_count');
-        $query->field('activo_estado');
+    ->cols(function ($query) {
+        $query->count('*')->as('activo_count');
+        $query->field('activo_activo');
     })
     ->get();
 
 $activosOthers2 = SophyDB::table('activo')
-    ->whereRaw('activo_costo > IF(activo_estado = "1  ", ?, 100)', [200])
+    ->whereRaw('activo_costo > IF(activo_activo = "1  ", ?, 100)', [200])
     ->get();
 
 $activosOthers3 = SophyDB::table('activo')
-    ->select('activo_nombre', SophyDB::raw('SUM(activo_costo) as total_sales'))
+    ->cols('activo_nombre', SophyDB::colsRaw('SUM(activo_costo) as total_sales'))
     ->groupBy('activo_nombre')
     ->havingRaw('SUM(activo_costo) > ?', [2500])
     ->get();
 
 $activos1 = SophyDB::table('activo')
     ->join('activogeneral', 'activo.activogeneral_id', '=', 'activogeneral.activogeneral_id')
-    ->select('activo.*', 'activogeneral.activogeneral_modelo', 'activogeneral.activogeneral_costo')
+    ->cols('activo.*', 'activogeneral.activogeneral_modelo', 'activogeneral.activogeneral_costo')
     ->get();
 
 $activos3 = SophyDB::table('activo')
-    ->select('activo.*', 'activogeneral.activogeneral_id')
     ->join('activogeneral.activogeneral_id', 'activo.activogeneral_id')
+    ->cols('activo.*', 'activogeneral.activogeneral_id')
     ->get();
 
 $activos4 = SophyDB::table('activo')
@@ -102,7 +102,7 @@ $activos5 = SophyDB::table('activo')
     ->get();
 
 $activos6 = SophyDB::table('activo')
-    ->where('activo_estado', '=', 1)
+    ->where('activo_activo', '=', 1)
     ->where('activo_costo', '>', 100)
     ->get();
 
@@ -119,7 +119,7 @@ $activos9 = SophyDB::table('activo')
 $activos10 = SophyDB::table('activo')
     ->where('activo_nombre', 'like', 'Ro%')
     ->get();
-
+    
 $activos11 = SophyDB::table('activo')
     ->where('activo_costo', '=', 4)
     ->orWhere('activo_costo', '100')
@@ -140,7 +140,7 @@ $activos12 = SophyDB::table('activo')
 
 $activos13 = SophyDB::table('activo')
     ->whereNot(function ($query) {
-        $query->where('activo_estado', 1)
+        $query->where('activo_activo', 1)
             ->orWhere('activo_costo', '<', 180);
     })
     ->get();
@@ -203,7 +203,7 @@ $activos27 = SophyDB::table('activogeneral')
 
 $activos28 = SophyDB::table('activogeneral')
     ->orderBy('activogeneral_id', 'asc')
-    //TODO ->orderBy('categoria_id', 'asc')
+    //->orderBy('categoria_id', 'desc')
     ->get();
 
 $activos29 = SophyDB::table('activo')
@@ -247,4 +247,4 @@ $activos40 = SophyDB::table('activo')
     ->in('activo_id', [212, 216, 219])
     ->get();
 
-$s = 1;
+$a = 1;

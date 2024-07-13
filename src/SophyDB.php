@@ -4,13 +4,13 @@ namespace SophyDB;
 
 use SophyDB\Connections\DSN;
 use PDO;
-use SophyDB\Connections\IDriver;
+use SophyDB\Connections\IDBDriver;
 use SophyDB\DML\DML;
 use SophyDB\SQLCommands\MySQL\Raw;
 
 final class SophyDB
 {
-    public IDriver $database;
+    public IDBDriver $database;
 
     private $hasConnection = false;
 
@@ -50,13 +50,12 @@ final class SophyDB
         return $dml;
     }
 
-    public static function raw($query, array $values = [])
+    public static function colsRaw($query, array $values = [])
     {
         $raw = new Raw;
         $raw->setRawData($query, $values);
         return $raw;
     }
-
 
     public function pdo()
     {
