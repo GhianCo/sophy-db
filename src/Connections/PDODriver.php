@@ -4,23 +4,104 @@ namespace SophyDB\Connections;
 
 use PDO;
 
-class PdoDriver implements IDBDriver
+class PDODriver implements IDBDriver
 {
     protected ?PDO $pdo;
+    private $hasConnection = false;
 
     const FETCH_CLASS = \PDO::FETCH_CLASS;
     const FETCH_ASSOC = \PDO::FETCH_ASSOC;
+    private $fetch = '';
 
-    public function connect(
-        string $protocol,
-        string $host,
-        int $port,
-        string $database,
-        string $username,
-        string $password
-    ) {
+    private $driver = '';
+    private $host = '';
+    private $port = '';
 
-     }
+    private $charset = 'utf8mb4';
+    private $collation = '';
+
+    private $db_name = '';
+    private $username = '';
+    private $password = '';
+
+    public function __construct($params = [])
+    {
+        $this->setDriver($params['driver'] ?? self::DEFAULT_DRIVER);
+        $this->setHost($params['host'] ?? self::DEFAULT_HOST);
+        $this->setPort($params['port'] ?? self::DEFAULT_PORT);
+
+        $this->setCharset($params['charset'] ?? self::DEFAULT_CHARSET);
+        $this->setCollation($params['collation'] ?? self::DEFAULT_COLLATION);
+        $this->setFetch($params['fetch'] ?? self::FETCH_CLASS);
+
+        $this->setDatabaseName($params['database'] ?? false);
+        $this->setUsername($params['username'] ?? false);
+        $this->setPassword($params['password'] ?? false);
+    }
+
+
+    public function setDriver($driver)
+    {
+        $this->driver = $driver;
+    }
+
+    public function setHost(string $host_address)
+    {
+        $this->host = $host_address;
+    }
+
+    public function setPort(string $port)
+    {
+        $this->port = $port;
+    }
+
+    public function setDatabaseName(string $database_name)
+    {
+        $this->db_name = $database_name;
+    }
+
+    public function setUsername(string $username)
+    {
+        $this->username = $username;
+    }
+
+    public function setPassword(string $password)
+    {
+        $this->password = $password;
+    }
+
+    public function setCharset(string $charset)
+    {
+        $this->charset = $charset;
+    }
+
+    public function setCollation(string $collation)
+    {
+        $this->collation = $collation;
+    }
+
+    public function setFetch($fetch)
+    {
+        $this->fetch = $fetch;
+    }
+
+    public function getFetch()
+    {
+        return $this->fetch;
+    }
+
+    public function connect()
+    {
+        if (!$this->hasConnection) {
+            $dsn = DSN::factory($this->db_name, $this->host, $this->driver, $this->port, $this->charset);
+            $this->pdo = new \PDO((string)$dsn(), $this->username, $this->password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
+                \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->charset' COLLATE '$this->collation'"
+            ]);
+
+            $this->hasConnection =  true;
+        }
+    }
 
     /**
      * Returns the PDO object for the database connection.

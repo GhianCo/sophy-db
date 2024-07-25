@@ -1,11 +1,13 @@
 <?php
 
 use SophyDB\Connections\DSN;
+use SophyDB\Connections\PDODriver;
 use SophyDB\SophyDB;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-SophyDB::factory([
+SophyDB::addConn([
+    'driver' => 'mysql',
     'host' => 'localhost',
     'port' => '3306',
 
@@ -15,7 +17,7 @@ SophyDB::factory([
 
     'charset' => DSN::UTF8,
     'collation' => DSN::UTF8_GENERAL_CI,
-    'fetch' => SophyDB::FETCH_CLASS
+    'fetch' => PDODriver::FETCH_CLASS
 ]);
 
 $allActivos = SophyDB::table('activo')->get();

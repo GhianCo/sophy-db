@@ -2,7 +2,7 @@
 
 namespace SophyDB\DML;
 
-use SophyDB\Connections\PdoDriver;
+use SophyDB\Connections\PDODriver;
 use SophyDB\SophyDB;
 use SophyDB\SQLCommands\MySQL\Delete;
 use SophyDB\SQLCommands\MySQL\Insert;
@@ -61,7 +61,7 @@ final class DML
 
     public function getValue($param, $name)
     {
-        if ($this->conn->getFetch() == PdoDriver::FETCH_CLASS) {
+        if ($this->conn->getFetch() == PDODriver::FETCH_CLASS) {
             return $param->{$name};
         } else {
             return $param[$name];
@@ -70,6 +70,7 @@ final class DML
 
     public function execute($query, $binds = [], $return = false)
     {
+        $this->conn->connect();
         $this->binds = $binds;
         if ($this->binds == null) {
             $stmt = $this->conn->pdo()->query($query);
