@@ -4,21 +4,37 @@ namespace SophyDB\DML;
 
 use SophyDB\Connections\PdoDriver;
 use SophyDB\SophyDB;
+use SophyDB\SQLCommands\MySQL\Delete;
+use SophyDB\SQLCommands\MySQL\Insert;
 use SophyDB\SQLCommands\MySQL\Select;
+use SophyDB\SQLCommands\MySQL\Update;
 use stdClass;
 
 final class DML
 {
     public Select $select;
+    public Insert $insert;
+    public Update $update;
+    public Delete $delete;
+    public Binding $binding;
+    public Parser $parser;
 
     public $sourceValue = [];
     public $conn;
     public $table;
+    public $pk = 'id';
+    public $action = 'select';
     public $binds = [];
 
-    public function __construct($select = null)
+    public function __construct()
     {
-        $this->select = $select ?: new Select($this);
+        $this->select = new Select($this);
+        $this->insert = new Insert($this);
+        $this->update = new Update($this);
+        $this->delete = new Delete($this);
+
+        $this->binding = new Binding($this);
+        $this->parser = new Parser($this);
     }
 
     public function setConnection($conn)
@@ -29,6 +45,13 @@ final class DML
     public function setTable($table)
     {
         $this->table = $table;
+    }
+
+
+    public function setAction($action)
+    {
+        $this->action = $action;
+        return $this;
     }
 
     public function value($column = '*')
@@ -61,10 +84,9 @@ final class DML
             $result = $stmt->rowCount();
         }
 
-
         return $result;
     }
-    
+
     public function get()
     {
         $query = $this->select->makeSelectQueryString();
@@ -76,24 +98,49 @@ final class DML
         $db = SophyDB::table($this->table);
         $db->binds = $this->binds;
         $db->sourceValue = $this->sourceValue;
-        $db->select->binding->clearSource('SELECT');
-        $db->select->binding->clearSource('LIMIT');
-        $db->select->binding->clearSource('OFFSET');
-        $db->select->binding->clearSource('FROM');
+        $db->binding->clearSource('SELECT');
+        $db->binding->clearSource('LIMIT');
+        $db->binding->clearSource('OFFSET');
+        $db->binding->clearSource('FROM');
         return $db;
     }
 
-    public function __call($name, $arguments) {
+    public function __call($name, $arguments)
+    {
+        if (method_exists($this->insert, $name)) {
+            $result = call_user_func_array([$this->insert, $name], $arguments);
+            if (!is_object($result) || $result instanceof stdClass || $result instanceof self) {
+                return $result;
+            }
+            return $this;
+        }
+
+        if (method_exists($this->update, $name)) {
+            $result = call_user_func_array([$this->update, $name], $arguments);
+            if (!is_object($result) || $result instanceof stdClass || $result instanceof self) {
+                return $result;
+            }
+            return $this;
+        }
+
+        if (method_exists($this->delete, $name)) {
+            $result = call_user_func_array([$this->delete, $name], $arguments);
+            if (!is_object($result) || $result instanceof stdClass || $result instanceof self) {
+                return $result;
+            }
+            return $this;
+        }
+
         if (method_exists($this->select, $name)) {
             $result = call_user_func_array([$this->select, $name], $arguments);
-            if (!is_object($result)|| $result instanceof stdClass || $result instanceof self) {
+            if (!is_object($result) || $result instanceof stdClass || $result instanceof self) {
                 return $result;
             }
             return $this;
         }
         if (method_exists($this->select->where, $name)) {
             $result = call_user_func_array([$this->select->where, $name], $arguments);
-            if (!is_object($result)|| $result instanceof stdClass || $result instanceof self) {
+            if (!is_object($result) || $result instanceof stdClass || $result instanceof self) {
                 return $result;
             }
             return $this;

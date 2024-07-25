@@ -2,15 +2,15 @@
 
 namespace SophyDB\SQLCommands;
 
-use SophyDB\SQLCommands\MySQL\Select;
+use SophyDB\DML\DML;
 
 final class Having
 {
-    private Select $select;
+    private DML $dml;
     
-    public function __construct($select = null)
+    public function __construct($dml = null)
     {
-        $this->select = $select;
+        $this->dml = $dml;
     }
 
     /**
@@ -26,10 +26,10 @@ final class Having
     public function having($column, $operator, $value = null, $boolean = 'and', $fn = '')
     {
         $this->addOperatorHaving($boolean);
-        $this->select->parser->fixOperatorAndValue($operator, $value);
-        $column = $this->select->parser->fixColumnName($column)['name'];
+        $this->dml->parser->fixOperatorAndValue($operator, $value);
+        $column = $this->dml->parser->fixColumnName($column)['name'];
 
-        $array = $this->select->binding->getSourceValueItem('HAVING');
+        $array = $this->dml->binding->getSourceValueItem('HAVING');
         $beginning = 'HAVING';
 
         if (count($array) > 0) {
@@ -37,9 +37,9 @@ final class Having
         }
 
         if (empty($fn)) {
-            $this->select->binding->addToSourceArray('HAVING', "$beginning $column $operator $value");
+            $this->dml->binding->addToSourceArray('HAVING', "$beginning $column $operator $value");
         } else {
-            $this->select->binding->addToSourceArray('HAVING', "$beginning $fn($column) $operator $value");
+            $this->dml->binding->addToSourceArray('HAVING', "$beginning $fn($column) $operator $value");
         }
 
         return $this;
@@ -141,15 +141,15 @@ final class Having
     {
         $this->addOperatorHaving($boolean);
 
-        $array = $this->select->binding->getSourceValueItem('HAVING');
+        $array = $this->dml->binding->getSourceValueItem('HAVING');
         $beginning = 'HAVING';
 
         if (count($array) > 0) {
             $beginning = '';
         }
-        $raw = $this->select->raw($sql, $bindings);
-        $raw = $this->select->makeRaw($raw->getRawQuery(), $raw->getRawValues());
-        $this->select->binding->addToSourceArray('HAVING', "$beginning " . $raw);
+        $raw = $this->dml->select->raw($sql, $bindings);
+        $raw = $this->dml->makeRaw($raw->getRawQuery(), $raw->getRawValues());
+        $this->dml->binding->addToSourceArray('HAVING', "$beginning " . $raw);
 
         return $this;
     }
@@ -161,14 +161,14 @@ final class Having
 
     public function addOperatorHaving($operator)
     {
-        $array = $this->select->binding->getSourceValueItem('HAVING');
+        $array = $this->dml->binding->getSourceValueItem('HAVING');
 
         if (count($array) > 0) {
 
             $end = $array[count($array) - 1];
 
             if (in_array($end, ['AND', 'OR', '(']) == false) {
-                $this->select->binding->addToSourceArray('HAVING', $operator);
+                $this->dml->binding->addToSourceArray('HAVING', $operator);
             }
         }
     }

@@ -2,20 +2,19 @@
 
 namespace SophyDB\DML;
 
-use SophyDB\SQLCommands\MySQL\Select;
-
 class Parser
 {
-  private Select $select;
+  private DML $dml;
 
-  public function __construct($select = null)
+  public function __construct($dml = null)
   {
-    $this->select = $select;
+    $this->dml = $dml;
   }
+
   public function methodInMaker(array $list, $callback)
   {
     foreach ($list as $item) {
-      $param_name = $this->select->binding->addToParamAutoName($item);
+      $param_name = $this->dml->binding->addToParamAutoName($item);
       $callback($param_name);
     }
   }
@@ -29,7 +28,7 @@ class Parser
     $type = '';
 
     if ($count == 1) {
-      $table = $this->select->dml->table;
+      $table = $this->dml->table;
       $column = $array[0];
       $type = 'column';
     } else if ($count == 2) {

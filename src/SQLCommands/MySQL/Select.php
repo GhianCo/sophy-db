@@ -2,9 +2,7 @@
 
 namespace SophyDB\SQLCommands\MySQL;
 
-use SophyDB\DML\Binding;
 use SophyDB\DML\DML;
-use SophyDB\DML\Parser;
 use SophyDB\SQLCommands\Having;
 use SophyDB\SQLCommands\Join;
 use SophyDB\SQLCommands\OrderBy;
@@ -14,7 +12,6 @@ use stdClass;
 class Select
 {
     public $stringArray = [];
-    public $pk = 'id';
 
     public DML $dml;
     public AggregateFn $aggregateFn;
@@ -23,19 +20,15 @@ class Select
     public Having $having;
     public OrderBy $orderBy;
 
-    public Binding $binding;
-    public Parser $parser;
 
     public function __construct(DML $dml)
     {
         $this->dml = $dml;
-        $this->aggregateFn = new AggregateFn($this);
-        $this->join = new Join($this);
-        $this->where = new Where($this);
-        $this->having = new Having($this);
-        $this->orderBy = new OrderBy($this);
-        $this->binding = new Binding($this);
-        $this->parser = new Parser($this);
+        $this->aggregateFn = new AggregateFn($dml);
+        $this->join = new Join($dml);
+        $this->where = new Where($dml);
+        $this->having = new Having($dml);
+        $this->orderBy = new OrderBy($dml);
     }
 
     public function setTable($table)
@@ -45,30 +38,30 @@ class Select
 
     public function cols(...$cols)
     {
-        $this->binding->clearSource('DISTINCT');
+        $this->dml->binding->clearSource('DISTINCT');
 
         if (count($cols) == 1 && !is_string($cols[0]) && !$cols[0] instanceof Raw) {
             if (is_array($cols[0])) {
                 foreach ($cols[0] as $key => $arg) {
-                    $cols[$key] = $this->parser->fixColumnName($arg)['name'];
+                    $cols[$key] = $this->dml->parser->fixColumnName($arg)['name'];
                 }
 
-                $this->binding->addToSourceArray('DISTINCT', implode(',', $cols));
+                $this->dml->binding->addToSourceArray('DISTINCT', implode(',', $cols));
             } elseif (is_callable($cols[0])) {
-                $aggregateFn = new AggregateFn($this);
+                $aggregateFn = new AggregateFn($this->dml);
                 $cols[0]($aggregateFn);
-                $this->binding->addToSourceArray('DISTINCT', $this->getString());
+                $this->dml->binding->addToSourceArray('DISTINCT', $this->getString());
             }
         } else {
             foreach ($cols as $key => $arg) {
                 if ($arg instanceof Raw) {
                     $cols[$key] = $this->makeRaw($arg->getRawQuery(), $arg->getRawValues());
                 } else {
-                    $cols[$key] = $this->parser->fixColumnName($arg)['name'];
+                    $cols[$key] = $this->dml->parser->fixColumnName($arg)['name'];
                 }
             }
 
-            $this->binding->addToSourceArray('DISTINCT', implode(',', $cols));
+            $this->dml->binding->addToSourceArray('DISTINCT', implode(',', $cols));
         }
         return $this;
     }
@@ -158,7 +151,7 @@ class Select
 
     public function limit(int $value)
     {
-        $this->binding->addToSourceArray('LIMIT', "LIMIT $value");
+        $this->dml->binding->addToSourceArray('LIMIT', "LIMIT $value");
         return $this;
     }
 
@@ -265,7 +258,7 @@ class Select
      */
     public function offset(int $offset)
     {
-        $this->binding->addToSourceArray('OFFSET', "OFFSET $offset");
+        $this->dml->binding->addToSourceArray('OFFSET', "OFFSET $offset");
         return $this;
     }
 
@@ -305,7 +298,7 @@ class Select
                 break;
             }
 
-            $param_name = $this->binding->bindParamAutoName($values[$index]);
+            $param_name = $this->dml->binding->bindParamAutoName($values[$index]);
             $query = substr_replace($query, $param_name, $find, 1);
             $index++;
         } while ($find !== false);
@@ -316,27 +309,13 @@ class Select
     public function makeSelectQueryString()
     {
         $table = $this->dml->table;
-        $this->binding->addToSourceArray('SELECT', "SELECT");
-        $this->binding->addToSourceArray('FROM', "FROM `$table`");
+        $this->dml->binding->addToSourceArray('SELECT', "SELECT");
+        $this->dml->binding->addToSourceArray('FROM', "FROM `$table`");
 
-        if (count($this->binding->getSourceValueItem('DISTINCT')) == 0) {
+        if (count($this->dml->binding->getSourceValueItem('DISTINCT')) == 0) {
             $this->cols('*');
         }
-        return $this->makeSourceValueStrign();
-    }
-
-    public function makeSourceValueStrign()
-    {
-        ksort($this->dml->sourceValue);
-
-        $array = [];
-        foreach ($this->dml->sourceValue as $value) {
-            if (is_array($value)) {
-                $array[] = implode(' ', $value);
-            }
-        }
-
-        return implode(' ', $array);
+        return $this->dml->binding->makeSourceValueString();
     }
 
     /**
@@ -349,9 +328,9 @@ class Select
     {
         $arr = [];
         foreach ($groups as $group) {
-            $arr[] = $this->parser->fixColumnName($group)['name'];
+            $arr[] = $this->dml->parser->fixColumnName($group)['name'];
         }
-        $this->binding->addToSourceArray('GROUP_BY', "GROUP BY " . implode(',', $arr));
+        $this->dml->binding->addToSourceArray('GROUP_BY', "GROUP BY " . implode(',', $arr));
         return $this;
     }
 

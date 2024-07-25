@@ -119,7 +119,7 @@ $activos9 = SophyDB::table('activo')
 $activos10 = SophyDB::table('activo')
     ->where('activo_nombre', 'like', 'Ro%')
     ->get();
-    
+
 $activos11 = SophyDB::table('activo')
     ->where('activo_costo', '=', 4)
     ->orWhere('activo_costo', '100')
@@ -231,7 +231,6 @@ $activos34 = SophyDB::table('activo')
     ->limit(5)
     ->get();
 
-
 $activos35 = SophyDB::table('activo')->is('activo_activo')->get();
 $activos36 = SophyDB::table('activo')->true('activo_activo')->get();
 $activos37 = SophyDB::table('activo')->is('activo_activo', false)->get();
@@ -246,5 +245,29 @@ $activos39 = SophyDB::table('activo')
 $activos40 = SophyDB::table('activo')
     ->in('activo_id', [212, 216, 219])
     ->get();
+
+SophyDB::table('area')->insert([
+    'area_nombre' => 'pedro',
+    'area_activa' => 1
+]);
+
+$id = SophyDB::table('area')->insertGetId(
+    ['area_nombre' => 'michael', 'area_activa' => 0]
+);
+
+$affected = SophyDB::table('area')
+    ->where('area_id', 10)
+    ->update(['area_activa' => 1]);
+
+SophyDB::table('moneda')->where('moneda_id', 1)->increment('moneda_tipocambio');
+ 
+SophyDB::table('moneda')->where('moneda_id', 1)->increment('moneda_tipocambio', 1);
+ 
+SophyDB::table('moneda')->where('moneda_id', 1)->decrement('moneda_tipocambio');
+ 
+SophyDB::table('moneda')->where('moneda_id', 1)->decrement('moneda_tipocambio', 1);
+
+SophyDB::table('area')->where('area_id', 20)->delete();
+SophyDB::table('area')->in('area_id', [3, 4, 5,6 ,7,8,9,10])->delete();
 
 $a = 1;

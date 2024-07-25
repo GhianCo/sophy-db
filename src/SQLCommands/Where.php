@@ -2,27 +2,27 @@
 
 namespace SophyDB\SQLCommands;
 
-use SophyDB\SQLCommands\MySQL\Select;
+use SophyDB\DML\DML;
 
 final class Where
 {
-    public Select $select;
+    public DML $dml;
 
-    public function __construct($select = null)
+    public function __construct($dml = null)
     {
-        $this->select = $select;
+        $this->dml = $dml;
     }
 
     public function find($id, $columns = [])
     {
-        return $this->where($this->select->pk, $id)->first($columns);
+        return $this->where($this->dml->pk, $id)->first($columns);
     }
 
     public function where(...$args)
     {
         $this->addOperator('AND');
         $this->queryMakerWhere($args);
-        return $this->select->dml;
+        return $this->dml;
     }
 
     public function orWhere(...$args)
@@ -310,7 +310,7 @@ final class Where
     public function whereRaw($query, array $values, $boolean = 'AND')
     {
         $this->addOperator($boolean);
-        $this->select->binding->addToSourceArray('WHERE', $this->select->makeRaw($query, $values));
+        $this->dml->binding->addToSourceArray('WHERE', $this->dml->select->makeRaw($query, $values));
         return $this;
     }
 
@@ -323,7 +323,7 @@ final class Where
     {
         $query = $this->queryMakerIn($name, $list, '');
         $this->addOperator('AND');
-        $this->select->binding->addToSourceArray('WHERE', $query);
+        $this->dml->binding->addToSourceArray('WHERE', $query);
         return $this;
     }
 
@@ -331,7 +331,7 @@ final class Where
     {
         $query = $this->queryMakerIn($name, $list, 'NOT');
         $this->addOperator('AND');
-        $this->select->binding->addToSourceArray('WHERE', $query);
+        $this->dml->binding->addToSourceArray('WHERE', $query);
         return $this;
     }
 
@@ -339,7 +339,7 @@ final class Where
     {
         $query = $this->queryMakerIn($name, $list, '');
         $this->addOperator('OR');
-        $this->select->binding->addToSourceArray('WHERE', $query);
+        $this->dml->binding->addToSourceArray('WHERE', $query);
         return $this;
     }
 
@@ -347,7 +347,7 @@ final class Where
     {
         $query = $this->queryMakerIn($name, $list, 'NOT');
         $this->addOperator('OR');
-        $this->select->binding->addToSourceArray('WHERE', $query);
+        $this->dml->binding->addToSourceArray('WHERE', $query);
         return $this;
     }
 
@@ -355,8 +355,8 @@ final class Where
     {
 
         $this->addOperator('AND');
-        $this->select->parser->fixOperatorAndValue($operator, $second);
-        $this->select->binding->addToSourceArray('WHERE', "`$first` $operator `$second`");
+        $this->dml->parser->fixOperatorAndValue($operator, $second);
+        $this->dml->binding->addToSourceArray('WHERE', "`$first` $operator `$second`");
 
         return $this;
     }
@@ -369,11 +369,11 @@ final class Where
             $operator = $args[1];
             $value = $args[2] ?? false;
 
-            $this->select->parser->fixOperatorAndValue($operator, $value);
+            $this->dml->parser->fixOperatorAndValue($operator, $value);
 
-            $column = $this->select->parser->fixColumnName($column)['name'];
+            $column = $this->dml->parser->fixColumnName($column)['name'];
 
-            $value_name = $this->select->binding->bindParamAutoName($value);
+            $value_name = $this->dml->binding->bindParamAutoName($value);
 
             $query = "$column $operator $value_name";
 
@@ -381,7 +381,7 @@ final class Where
                 $query = 'NOT ' . $query;
             }
 
-            $this->select->binding->addToSourceArray('WHERE', $query);
+            $this->dml->binding->addToSourceArray('WHERE', $query);
         } else if (is_callable($args[0])) {
 
             $this->addStartParentheses();
@@ -392,10 +392,10 @@ final class Where
 
     private function queryMakerWhereBetween($name, array $values, $extra_operation = '')
     {
-        $name = $this->select->parser->fixColumnName($name)['name'];
+        $name = $this->dml->parser->fixColumnName($name)['name'];
 
-        $v1 = $this->select->binding->bindParamAutoName($values[0]);
-        $v2 = $this->select->binding->bindParamAutoName($values[1]);
+        $v1 = $this->dml->binding->bindParamAutoName($values[0]);
+        $v2 = $this->dml->binding->bindParamAutoName($values[1]);
 
         $query = "$name BETWEEN $v1 AND $v2";
 
@@ -403,7 +403,7 @@ final class Where
             $query = 'NOT ' . $query;
         }
 
-        $this->select->binding->addToSourceArray('WHERE', $query);
+        $this->dml->binding->addToSourceArray('WHERE', $query);
     }
 
     private function queryMakerWhereLikeDate($action, $args)
@@ -413,21 +413,21 @@ final class Where
         $operator = $args[1];
         $value = $args[2] ?? false;
 
-        $this->select->parser->fixOperatorAndValue($operator, $value);
+        $this->dml->parser->fixOperatorAndValue($operator, $value);
 
-        $column = $this->select->parser->fixColumnName($column)['name'];
+        $column = $this->dml->parser->fixColumnName($column)['name'];
 
-        $value_name = $this->select->binding->bindParamAutoName($column);
+        $value_name = $this->dml->binding->bindParamAutoName($column);
 
 
         $query = "$action($column) $operator $value_name";
 
-        $this->select->binding->addToSourceArray('WHERE', $query);
+        $this->dml->binding->addToSourceArray('WHERE', $query);
     }
 
     private function queryMakerWhereStaticValue($name, $value)
     {
-        $name = $this->select->parser->fixColumnName($name)['name'];
+        $name = $this->dml->parser->fixColumnName($name)['name'];
 
         $query = "$name $value";
 
@@ -435,32 +435,32 @@ final class Where
             $query = 'NOT ' . $query;
         }
 
-        $this->select->binding->addToSourceArray('WHERE', $query);
+        $this->dml->binding->addToSourceArray('WHERE', $query);
     }
 
     protected function addStartParentheses()
     {
-        $this->select->binding->addToSourceArray('WHERE', '(');
+        $this->dml->binding->addToSourceArray('WHERE', '(');
     }
 
     protected function addEndParentheses()
     {
-        $this->select->binding->addToSourceArray('WHERE', ')');
+        $this->dml->binding->addToSourceArray('WHERE', ')');
     }
 
     protected function addOperator($operator)
     {
-        $array = $this->select->binding->getSourceValueItem('WHERE');
+        $array = $this->dml->binding->getSourceValueItem('WHERE');
 
         if (count($array) > 0) {
 
             $end = $array[count($array) - 1];
 
             if (in_array($end, ['AND', 'OR', '(']) == false) {
-                $this->select->binding->addToSourceArray('WHERE', $operator);
+                $this->dml->binding->addToSourceArray('WHERE', $operator);
             }
         } else {
-            $this->select->binding->addToSourceArray('WHERE', 'WHERE');
+            $this->dml->binding->addToSourceArray('WHERE', 'WHERE');
         }
     }
 
@@ -471,11 +471,11 @@ final class Where
             return '';
         }
 
-        $name = $this->select->parser->fixColumnName($name)['name'];
+        $name = $this->dml->parser->fixColumnName($name)['name'];
 
         $values = [];
 
-        $this->select->parser->methodInMaker($list, function ($get_param_name) use (&$values) {
+        $this->dml->parser->methodInMaker($list, function ($get_param_name) use (&$values) {
             $values[] = $get_param_name;
         });
 

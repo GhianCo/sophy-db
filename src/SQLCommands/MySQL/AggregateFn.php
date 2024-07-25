@@ -2,29 +2,31 @@
 
 namespace SophyDB\SQLCommands\MySQL;
 
+use SophyDB\DML\DML;
+
 class AggregateFn
 {
-    private Select $select;
+    private DML $dml;
 
-    public function __construct($select = null)
+    public function __construct($dml = null)
     {
-        $this->select = $select;
+        $this->dml = $dml;
     }
 
     public function fn($type, $column)
     {
         if ($column != '*') {
-            $column = $this->select->parser->fixColumnName($column)['name'];
+            $column = $this->dml->parser->fixColumnName($column)['name'];
         }
 
-        $this->select->stringArray[] = "$type($column)";
+        $this->dml->select->stringArray[] = "$type($column)";
     }
 
     public function field($column)
     {
-        $column = $this->select->parser->fixColumnName($column)['name'];
-        $this->select->stringArray[] = $column;
-        return new AsField($this->select);
+        $column = $this->dml->parser->fixColumnName($column)['name'];
+        $this->dml->select->stringArray[] = $column;
+        return new AsField($this->dml->select);
     }
 
     /**
@@ -36,7 +38,7 @@ class AggregateFn
     public function count($column = '*')
     {
         $this->fn("COUNT", $column);
-        return new AsField($this->select);
+        return new AsField($this->dml->select);
     }
 
     /**
@@ -48,7 +50,7 @@ class AggregateFn
     public function sum($column = '*')
     {
         $this->fn("SUM", $column);
-        return new AsField($this->select);
+        return new AsField($this->dml->select);
     }
 
     /**
@@ -60,7 +62,7 @@ class AggregateFn
     public function avg($column = '*')
     {
         $this->fn("AVG", $column);
-        return new AsField($this->select);
+        return new AsField($this->dml->select);
     }
 
 
@@ -73,7 +75,7 @@ class AggregateFn
     public function max($column)
     {
         $this->fn("MAX", $column);
-        return new AsField($this->select);
+        return new AsField($this->dml->select);
     }
 
     /**
@@ -85,6 +87,6 @@ class AggregateFn
     public function min($column)
     {
         $this->fn("MIN", $column);
-        return new AsField($this->select);
+        return new AsField($this->dml->select);
     }
 }

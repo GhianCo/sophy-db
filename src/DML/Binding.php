@@ -3,21 +3,20 @@
 namespace SophyDB\DML;
 
 use SophyDB\SQLCommands\Keywords;
-use SophyDB\SQLCommands\MySQL\Select;
 
 class Binding
 {
     private $position = 0;
 
-    private Select $select;
+    private DML $dml;
     public Keywords $keyWords;
-    
-    public function __construct($select = null)
+
+    public function __construct($dml = null)
     {
-        $this->select = $select;
+        $this->dml = $dml;
         $this->keyWords = new Keywords();
     }
-    
+
     public function bindParamAutoName($value)
     {
         $name = $this->assignParamName();
@@ -38,30 +37,45 @@ class Binding
             $value = 1;
         }
 
-        $this->select->dml->binds[":$name"] = $value;
+        $this->dml->binds[":$name"] = $value;
         return ":$name";
     }
 
     public function clearSource($struct_name)
     {
         $s_index = $this->keyWords->get($struct_name);
-        $this->select->dml->sourceValue[$s_index] = [];
+        $this->dml->sourceValue[$s_index] = [];
     }
 
     public function addToSourceArray($struct_name, $value)
     {
         $s_index = $this->keyWords->get($struct_name);
-        $this->select->dml->sourceValue[$s_index][] = $value;
+        $this->dml->sourceValue[$s_index][] = $value;
     }
 
     public function getSourceValueItem($struct_name)
     {
         $s_index = $this->keyWords->get($struct_name);
-        return $this->select->dml->sourceValue[$s_index] ?? [];
+        return $this->dml->sourceValue[$s_index] ?? [];
     }
 
-    public function addToParamAutoName($value){
+    public function addToParamAutoName($value)
+    {
         $name = $this->assignParamName();
         return $this->bindParam($name, $value);
+    }
+
+    public function makeSourceValueString()
+    {
+        ksort($this->dml->sourceValue);
+
+        $array = [];
+        foreach ($this->dml->sourceValue as $value) {
+            if (is_array($value)) {
+                $array[] = implode(' ', $value);
+            }
+        }
+
+        return implode(' ', $array);
     }
 }
