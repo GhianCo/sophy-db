@@ -68,11 +68,7 @@ class Select
                 }
             }
 
-            if (strlen($this->getString())) {
-                $this->binding->addToSourceArray('DISTINCT', $this->getString());
-            } else {
-                $this->binding->addToSourceArray('DISTINCT', implode(',', $cols));
-            }
+            $this->binding->addToSourceArray('DISTINCT', implode(',', $cols));
         }
         return $this;
     }
