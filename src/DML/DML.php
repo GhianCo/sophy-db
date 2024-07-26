@@ -73,7 +73,7 @@ final class DML
         }
     }
 
-    public function execute($query, $binds = [], $return = false)
+    public function execute($query, $binds = [], $return = false, $isList = true)
     {
         $this->conn->connect();
         $this->binds = $binds;
@@ -85,7 +85,11 @@ final class DML
         }
 
         if ($return) {
-            $result = $stmt->fetchAll($this->conn->getFetch());
+            if ($isList == true) {
+                $result = $stmt->fetchAll($this->conn->getFetch());
+            } else {
+                $result = $stmt->fetchObject();
+            }
         } else {
             $result = $stmt->rowCount();
         }
@@ -97,6 +101,11 @@ final class DML
     {
         $query = $this->select->makeSelectQueryString();
         return $this->execute($query, $this->binds, true);
+    }
+
+    public function getOne() {
+        $query = $this->makeSelectQueryString();
+        return $this->execute($query, $this->binds, true, false);
     }
 
     public function clone()
