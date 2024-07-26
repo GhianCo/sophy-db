@@ -94,11 +94,11 @@ class PDODriver implements IDBDriver
     {
         if (!$this->hasConnection) {
             $dsn = DSN::factory($this->db_name, $this->host, $this->driver, $this->port, $this->charset);
-            $this->pdo = new \PDO((string)$dsn(), $this->username, $this->password, [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
-                \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->charset' COLLATE '$this->collation'"
-            ]);
-
+            $this->pdo = new \PDO((string)$dsn(), $this->username, $this->password);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $this->pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+            
             $this->hasConnection =  true;
         }
     }
