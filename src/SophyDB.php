@@ -2,7 +2,6 @@
 
 namespace SophyDB;
 
-use Sophy\App;
 use SophyDB\Connections\IDBDriver;
 use SophyDB\Connections\PDODriver;
 use SophyDB\DML\DML;

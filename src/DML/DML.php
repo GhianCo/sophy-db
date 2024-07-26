@@ -47,6 +47,11 @@ final class DML
         $this->table = $table;
     }
 
+    public function setPrimaryKey(string $pk)
+    {
+      $this->pk = $pk;
+    }
+  
 
     public function setAction($action)
     {
