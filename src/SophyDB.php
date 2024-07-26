@@ -2,7 +2,7 @@
 
 namespace SophyDB;
 
-use PDO;
+use Sophy\App;
 use SophyDB\Connections\IDBDriver;
 use SophyDB\Connections\PDODriver;
 use SophyDB\DML\DML;
@@ -13,17 +13,11 @@ final class SophyDB
     public IDBDriver $database;
 
     protected static $DB_DEFAULT = 'main';
-    protected static $connections = [];
-
-    private static function currentConn()
-    {
-        return self::$connections[self::$DB_DEFAULT];
-    }
 
     public static function table($name)
     {
         $dml = new DML();
-        $dml->setConnection(self::currentConn());
+        $dml->setConnection(app(self::$DB_DEFAULT));
         $dml->setTable($name);
         return $dml;
     }
@@ -37,7 +31,9 @@ final class SophyDB
 
     public static function addConn(array $params, $connName = 'main')
     {
-        self::$connections[$connName] = new PDODriver($params);
+        singleton($connName, function() use($params) {
+            return new PDODriver($params);
+        });
     }
 
     public static function use(string $config_name)

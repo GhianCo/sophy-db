@@ -7,7 +7,6 @@ use SophyDB\SophyDB;
 require_once __DIR__ . '/vendor/autoload.php';
 
 SophyDB::addConn([
-    'driver' => 'mysql',
     'host' => 'localhost',
     'port' => '3306',
 
@@ -21,7 +20,6 @@ SophyDB::addConn([
 ]);
 
 SophyDB::addConn([
-    'driver' => 'mysql',
     'host' => 'localhost',
     'port' => '3306',
 
@@ -276,15 +274,15 @@ $affected = SophyDB::table('area')
     ->update(['area_activa' => 1]);
 
 SophyDB::table('moneda')->where('moneda_id', 1)->increment('moneda_tipocambio');
- 
+
 SophyDB::table('moneda')->where('moneda_id', 1)->increment('moneda_tipocambio', 1);
- 
+
 SophyDB::table('moneda')->where('moneda_id', 1)->decrement('moneda_tipocambio');
- 
+
 SophyDB::table('moneda')->where('moneda_id', 1)->decrement('moneda_tipocambio', 1);
 
 SophyDB::table('area')->where('area_id', 20)->delete();
-SophyDB::table('area')->in('area_id', [3, 4, 5,6 ,7,8,9,10])->delete();
+SophyDB::table('area')->in('area_id', [3, 4, 5, 6, 7, 8, 9, 10])->delete();
 
 //Cambio de BD
 SophyDB::use('udep');
