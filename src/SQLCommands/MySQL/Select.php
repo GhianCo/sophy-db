@@ -215,26 +215,25 @@ class Select
             $page_number = 1;
         }
 
-        $list = $this->page($page_number - 1, $take);
-        $count = $this->dml->clone()->count();
+        $data = $this->page($page_number - 1, $take);
+        $total = $this->dml->clone()->count();
 
         $params = new stdClass;
-        $params->last_page = ceil($count / $take);
 
-        $nextpage = (($page_number) < $params->last_page) ? ($page_number + 1) : false;
+        $startIndex = (($page_number - 1) * $take) + 1;
+        $endIndex = min(($take * $page_number), $total);
+        $totalPages = ceil($total / ($take > 0 ? $take : 1));
 
-        $prevpage = false;
-        if ($page_number <= $params->last_page && $page_number > 1) {
-            $prevpage = $page_number - 1;
-        }
-
-        $params->total = $count;
-        $params->count = count($list);
-        $params->per_page = $take;
-        $params->prev_page = $prevpage;
-        $params->next_page = $nextpage;
-        $params->current_page = $page_number;
-        $params->data = $list;
+        $params->data = $data;
+        $params->pagination = new stdClass;
+        $params->pagination->totalRows = $total;
+        $params->pagination->totalPages = $totalPages;
+        $params->pagination->currentPage = $page_number;
+        $params->pagination->perPage = $take;
+        $params->pagination->startIndex = $startIndex;
+        $params->pagination->endIndex = $endIndex;
+        $params->pagination->hasRowsToLeft =  $startIndex === 1;
+        $params->pagination->hasRowsToRight = $endIndex === $total;
 
         return $params;
     }
