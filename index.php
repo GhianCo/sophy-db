@@ -6,6 +6,8 @@ use SophyDB\SophyDB;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+Sophy\App::buildContainer();
+
 SophyDB::addConn([
     'host' => 'localhost',
     'port' => '3306',
