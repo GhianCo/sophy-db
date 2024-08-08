@@ -2,7 +2,7 @@
 
 namespace SophyDB\DML;
 
-use SophyDB\Connections\PDODriver;
+use Sophy\Database\Drivers\PDODriver;
 use SophyDB\SophyDB;
 use SophyDB\SQLCommands\MySQL\Delete;
 use SophyDB\SQLCommands\MySQL\Insert;

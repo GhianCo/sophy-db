@@ -1,7 +1,7 @@
 <?php
 
-use SophyDB\Connections\DSN;
-use SophyDB\Connections\PDODriver;
+use Sophy\Database\Drivers\PDODriver;
+use Sophy\Database\DSN;
 use SophyDB\SophyDB;
 
 require_once __DIR__ . '/vendor/autoload.php';
@@ -142,15 +142,15 @@ $activos11 = SophyDB::table('activo')
     ->get();
 
 $activos12 = SophyDB::table('activo')
-    ->where('fid', '>', 5)
+    ->where('activo_costo', '>', 5)
     ->orWhere(function ($query) {
         $query->where('activo_costo', '100')
-            ->and('fid', '>', 4)
-            ->and('fid', '>', 5)
-            ->where('fid', '>', 6)
-            ->where('fid', '>', 7)
-            ->where('fid', '>', 8)
-            ->where('fid', '>', 9);
+            ->and('activo_costo', '>', 4)
+            ->and('activo_costo', '>', 5)
+            ->where('activo_costo', '>', 6)
+            ->where('activo_costo', '>', 7)
+            ->where('activo_costo', '>', 8)
+            ->where('activo_costo', '>', 9);
     })
     ->get();
 

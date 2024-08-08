@@ -2,8 +2,8 @@
 
 namespace SophyDB;
 
-use SophyDB\Connections\IDBDriver;
-use SophyDB\Connections\PDODriver;
+use Sophy\Database\Drivers\IDBDriver;
+use Sophy\Database\Drivers\PDODriver;
 use SophyDB\DML\DML;
 use SophyDB\SQLCommands\MySQL\Raw;
 
