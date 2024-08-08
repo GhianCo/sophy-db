@@ -11,7 +11,7 @@ final class SophyDB
 {
     public IDBDriver $database;
 
-    protected static $DB_DEFAULT = 'main';
+    protected static $DB_DEFAULT = IDBDriver::class;
 
     public static function table($name)
     {
@@ -28,7 +28,7 @@ final class SophyDB
         return $raw;
     }
 
-    public static function addConn(array $params, $connName = 'main')
+    public static function addConn(array $params, $connName = IDBDriver::class)
     {
         singleton($connName, function() use($params) {
             return new PDODriver($params);

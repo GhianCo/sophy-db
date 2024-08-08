@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ee6518f0dfe9b32a7167841d611d3c84",
+    "content-hash": "5624ca0ab611085d6b3f170f70553a7a",
     "packages": [
         {
             "name": "fig/http-message-util",
@@ -64,16 +64,16 @@
         },
         {
             "name": "ghianco/sophy-core",
-            "version": "1.3.2",
+            "version": "1.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/GhianCo/sophy-core.git",
-                "reference": "da3e9acfdc8ae1f034bd89df212e002fa17b8e99"
+                "reference": "3e7c676410bce6f232df7e66b478b502146e762c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GhianCo/sophy-core/zipball/da3e9acfdc8ae1f034bd89df212e002fa17b8e99",
-                "reference": "da3e9acfdc8ae1f034bd89df212e002fa17b8e99",
+                "url": "https://api.github.com/repos/GhianCo/sophy-core/zipball/3e7c676410bce6f232df7e66b478b502146e762c",
+                "reference": "3e7c676410bce6f232df7e66b478b502146e762c",
                 "shasum": ""
             },
             "require": {
@@ -109,9 +109,9 @@
             "description": "PHP Core Framework",
             "support": {
                 "issues": "https://github.com/GhianCo/sophy-core/issues",
-                "source": "https://github.com/GhianCo/sophy-core/tree/1.3.2"
+                "source": "https://github.com/GhianCo/sophy-core/tree/1.3.3"
             },
-            "time": "2024-08-08T18:12:31+00:00"
+            "time": "2024-08-08T18:45:07+00:00"
         },
         {
             "name": "graham-campbell/result-type",
