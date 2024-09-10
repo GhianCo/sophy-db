@@ -76,6 +76,14 @@ class Binding
             }
         }
 
-        return implode(' ', $array);
+        return $this->removeWhereClauses(implode(' ', $array));
+    }
+
+    function removeWhereClauses($query)
+    {
+        $query = preg_replace('/where\s*\(\s*\)\s*/i', '', $query);
+        $query = preg_replace('/\s*where\s*\(\s*\)\s*$/i', '', $query);
+        $query = preg_replace('/\s+/', ' ', $query);
+        return trim($query);
     }
 }
