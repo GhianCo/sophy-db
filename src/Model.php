@@ -10,9 +10,9 @@ class Model
 
     protected $primaryKey = 'id';
 
-    protected array $fillable = [];
+    protected $fillable = [];
 
-    protected array $attributes = [];
+    protected $attributes = [];
 
     protected function makeInstance($name, $arguments = [])
     {
@@ -32,17 +32,17 @@ class Model
         return $this->makeInstance($name, $arguments);
     }
 
-    public static function create(array $attributes)
+    public static function create($attributes)
     {
         return (new static())->massAsign($attributes);
     }
 
-    public static function update(array $attributes, int $id)
+    public static function update($attributes, int $id)
     {
         return (new static())->massAsign($attributes, $id);
     }
 
-    protected function massAsign(array $attributes, $id = null)
+    protected function massAsign($attributes, $id = null)
     {
         if (count($this->fillable) == 0) {
             throw new \Error("Entidad " . static::class . " no tiene atributos por asignar");
