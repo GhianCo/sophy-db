@@ -15,7 +15,7 @@ final class SophyDB
 
     public static function table($name)
     {
-        $dml = new DML();
+        $dml = new DML;
         $dml->setConnection(app(self::$DB_DEFAULT));
         $dml->setTable($name);
         return $dml;
@@ -30,7 +30,7 @@ final class SophyDB
 
     public static function addConn(array $params, $connName = IDBDriver::class)
     {
-        singleton($connName, function() use($params) {
+        singleton($connName, function () use ($params) {
             return new PDODriver($params);
         });
     }
@@ -39,5 +39,12 @@ final class SophyDB
     {
         self::$DB_DEFAULT = $config_name;
         return new static;
+    }
+
+    public static function query($sql, $params = [], $isList = false)
+    {
+        $dml = new DML;
+        $dml->setConnection(app(self::$DB_DEFAULT));
+        return $dml->execute($sql, $params, true, $isList);
     }
 }
