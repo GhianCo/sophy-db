@@ -291,4 +291,9 @@ SophyDB::use('udep');
 
 $allAreas = SophyDB::table('area')->get();
 
+$nombre = 'pedro';
+
+$allActivos = SophyDB::query('select * from activo activo_nombre = ?', [$nombre]);
+$allActivos = SophyDB::query('select * from activo activo_codigo = ?', ['1234']);
+
 $a = 1;
