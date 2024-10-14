@@ -66,11 +66,6 @@ final class SophyDB
     {
         $dml = new DML;
         $dml->setConnection(app(self::$CONN_DEFAULT));
-        if (!empty($params)) {
-            foreach ($params as $value) {
-                $dml->binding->bindParamAutoName($value);
-            }
-        }
-        return $dml->execute($sql, $dml->binds, true, $isList);
+        return $dml->execute($sql, $params, true, $isList);
     }
 }
