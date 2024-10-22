@@ -2,7 +2,7 @@
 
 namespace SophyDB\SQLCommands;
 
-final class Keywords {
+final class KeyWords {
 
     const SELECT = 0x01;
     const FIELDS = 0x02;

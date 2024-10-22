@@ -2,19 +2,19 @@
 
 namespace SophyDB\DML;
 
-use SophyDB\SQLCommands\Keywords;
+use SophyDB\SQLCommands\KeyWords;
 
 class Binding
 {
     private $position = 0;
 
     private DML $dml;
-    public Keywords $keyWords;
+    public KeyWords $keyWords;
 
     public function __construct($dml = null)
     {
         $this->dml = $dml;
-        $this->keyWords = new Keywords();
+        $this->keyWords = new KeyWords();
     }
 
     public function bindParamAutoName($value)
