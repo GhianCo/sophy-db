@@ -22,8 +22,8 @@ class Delete
 
     protected function makeDeleteQueryString()
     {
-        $table = $this->dml->table;
+        $table = $this->dml->grammar()->quoteIdentifier($this->dml->table);
         $extra = $this->dml->binding->makeSourceValueString();
-        return "DELETE FROM `$table`  $extra";
+        return "DELETE FROM $table $extra";
     }
 }

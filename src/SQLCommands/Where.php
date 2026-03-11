@@ -356,7 +356,8 @@ final class Where
 
         $this->addOperator('AND');
         $this->dml->parser->fixOperatorAndValue($operator, $second);
-        $this->dml->binding->addToSourceArray('WHERE', "`$first` $operator `$second`");
+        $q = $this->dml->grammar();
+        $this->dml->binding->addToSourceArray('WHERE', $q->quoteIdentifier($first) . " $operator " . $q->quoteIdentifier($second));
 
         return $this;
     }

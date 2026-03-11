@@ -2,7 +2,12 @@
 
 namespace SophyDB\Database;
 
+use SophyDB\Contracts\Grammar;
 use SophyDB\Contracts\IDBDriver;
+use SophyDB\Grammar\MySQLGrammar;
+use SophyDB\Grammar\PostgreSQLGrammar;
+use SophyDB\Grammar\SQLiteGrammar;
+use SophyDB\Grammar\SQLServerGrammar;
 
 class PDODriver implements IDBDriver
 {
@@ -12,10 +17,33 @@ class PDODriver implements IDBDriver
 
     private $params;
     private $connection = null;
+    private $grammar = null;
 
     public function __construct(array $params)
     {
-        $this->params = $params;
+        $this->params  = $params;
+        $this->grammar = $this->resolveGrammar();
+    }
+
+    private function resolveGrammar(): Grammar
+    {
+        $driver = $this->params['driver'] ?? 'mysql';
+
+        if ($driver === 'pgsql' || $driver === 'postgresql') {
+            return new PostgreSQLGrammar();
+        }
+        if ($driver === 'sqlite') {
+            return new SQLiteGrammar();
+        }
+        if ($driver === 'sqlsrv' || $driver === 'sqlserver') {
+            return new SQLServerGrammar();
+        }
+        return new MySQLGrammar();
+    }
+
+    public function grammar(): Grammar
+    {
+        return $this->grammar;
     }
 
     public function connect(): void

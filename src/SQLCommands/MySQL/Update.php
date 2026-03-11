@@ -44,8 +44,9 @@ class Update
         }
 
         $extra = $this->dml->binding->makeSourceValueString();
+        $qt = $this->dml->grammar()->quoteIdentifier($table);
 
-        return "UPDATE `$table` SET " . implode(',', $params) . " $extra";
+        return "UPDATE $qt SET " . implode(',', $params) . " $extra";
     }
 
     protected function makeUpdateQueryIncrement(string $column, $value = 1, $action = '+')
@@ -63,7 +64,8 @@ class Update
         }
 
         $extra = $this->dml->binding->makeSourceValueString();
+        $qt = $this->dml->grammar()->quoteIdentifier($table);
 
-        return "UPDATE `$table` SET " . implode(',', $params) . " $extra";
+        return "UPDATE $qt SET " . implode(',', $params) . " $extra";
     }
 }

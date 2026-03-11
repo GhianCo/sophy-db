@@ -43,7 +43,8 @@ final class Join
 
     public function crossJoin($column)
     {
-        $this->dml->binding->addToSourceArray('JOIN', "CROSS JOIN `$column`");
+        $qt = $this->dml->grammar()->quoteIdentifier($column);
+        $this->dml->binding->addToSourceArray('JOIN', "CROSS JOIN $qt");
         return $this;
     }
 
@@ -76,7 +77,7 @@ final class Join
 
             $main_column = $table_main['name'];
         } else if ($main_column) {
-            $join_table = "`$join_table`";
+            $join_table = $this->dml->grammar()->quoteIdentifier($join_table);
 
             $join_table_column = $this->dml->parser->fixColumnName($join_table_column)['name'];
             $main_column = $this->dml->parser->fixColumnName($main_column)['name'];

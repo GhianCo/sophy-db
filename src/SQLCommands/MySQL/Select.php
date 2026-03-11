@@ -307,9 +307,9 @@ class Select
 
     public function makeSelectQueryString()
     {
-        $table = $this->dml->table;
+        $table = $this->dml->grammar()->quoteIdentifier($this->dml->table);
         $this->dml->binding->addToSourceArray('SELECT', "SELECT");
-        $this->dml->binding->addToSourceArray('FROM', "FROM `$table`");
+        $this->dml->binding->addToSourceArray('FROM', "FROM $table");
 
         if (count($this->dml->binding->getSourceValueItem('DISTINCT')) == 0) {
             $this->cols('*');

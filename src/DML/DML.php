@@ -2,7 +2,9 @@
 
 namespace SophyDB\DML;
 
+use SophyDB\Contracts\Grammar;
 use SophyDB\Database\PDODriver;
+use SophyDB\Grammar\MySQLGrammar;
 use SophyDB\SophyDB;
 use SophyDB\SQLCommands\MySQL\Delete;
 use SophyDB\SQLCommands\MySQL\Insert;
@@ -57,6 +59,14 @@ final class DML
     {
         $this->action = $action;
         return $this;
+    }
+
+    public function grammar(): Grammar
+    {
+        if ($this->conn && method_exists($this->conn, 'grammar')) {
+            return $this->conn->grammar();
+        }
+        return new MySQLGrammar();
     }
 
     public function value($column = '*')

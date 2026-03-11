@@ -41,6 +41,7 @@ class Insert
             $param_value_name_list[] = $this->dml->binding->addToParamAutoName($value);
         }
 
-        return "INSERT INTO `$table` (" . implode(',', $param_name) . ") VALUES (" . implode(',', $param_value_name_list) . ")";
+        $qt = $this->dml->grammar()->quoteIdentifier($table);
+        return "INSERT INTO $qt (" . implode(',', $param_name) . ") VALUES (" . implode(',', $param_value_name_list) . ")";
     }
 }

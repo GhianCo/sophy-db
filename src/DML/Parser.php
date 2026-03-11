@@ -38,10 +38,10 @@ class Parser
     }
 
     if ($column != '*') {
-      $column = "`$column`";
+      $column = $this->dml->grammar()->quoteIdentifier($column);
     }
 
-    $table = "`$table`";
+    $table = $this->dml->grammar()->quoteIdentifier($table);
 
     return ['name' => "$table.$column", 'table' => $table, 'column' => $column, 'type' => $type];
   }

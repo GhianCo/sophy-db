@@ -47,7 +47,8 @@ final class OrderBy
 
     public function inRandomOrder()
     {
-        $this->dml->binding->addToSourceArray('ORDER_BY', "ORDER BY RAND()");
+        $fn = $this->dml->grammar()->randomFunction();
+        $this->dml->binding->addToSourceArray('ORDER_BY', "ORDER BY $fn");
         return $this;
     }
 
