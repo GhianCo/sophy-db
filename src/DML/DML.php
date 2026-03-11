@@ -28,6 +28,8 @@ final class DML
     public $action = 'select';
     public $binds = [];
 
+    private $grammar = null;
+
     public function __construct()
     {
         $this->select = new Select($this);
@@ -63,10 +65,12 @@ final class DML
 
     public function grammar(): Grammar
     {
-        if ($this->conn && method_exists($this->conn, 'grammar')) {
-            return $this->conn->grammar();
+        if ($this->grammar === null) {
+            $this->grammar = ($this->conn && method_exists($this->conn, 'grammar'))
+                ? $this->conn->grammar()
+                : new MySQLGrammar();
         }
-        return new MySQLGrammar();
+        return $this->grammar;
     }
 
     public function value($column = '*')
@@ -114,7 +118,7 @@ final class DML
     }
 
     public function getOne() {
-        $query = $this->makeSelectQueryString();
+        $query = $this->select->makeSelectQueryString();
         return $this->execute($query, $this->binds, true, false);
     }
 

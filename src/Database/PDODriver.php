@@ -74,11 +74,21 @@ class PDODriver implements IDBDriver
             $dsn .= "charset={$charset};";
         }
 
-        $this->connection = new \PDO($dsn, $username, $password, [
-            \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_DEFAULT_FETCH_MODE => $this->params['fetch'] ?? \PDO::FETCH_CLASS,
-            \PDO::ATTR_EMULATE_PREPARES   => false,
-        ]);
+        try {
+            $this->connection = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => $this->params['fetch'] ?? \PDO::FETCH_CLASS,
+                \PDO::ATTR_EMULATE_PREPARES   => false,
+                \PDO::ATTR_TIMEOUT            => 30,
+            ]);
+        } catch (\PDOException $e) {
+            throw new \SophyDB\Exceptions\DatabaseException(
+                'No se pudo establecer la conexión con la base de datos.'
+            );
+        } finally {
+            unset($password);
+            unset($this->params['password']);
+        }
     }
 
     public function pdo(): \PDO

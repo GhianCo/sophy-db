@@ -353,6 +353,10 @@ final class Where
 
     public function whereColumn($first, $operator, $second = false)
     {
+        $allowedOperators = ['=', '!=', '<>', '<', '>', '<=', '>='];
+        if (!in_array($operator, $allowedOperators, true)) {
+            throw new \InvalidArgumentException("Operador no permitido en whereColumn: '{$operator}'");
+        }
 
         $this->addOperator('AND');
         $this->dml->parser->fixOperatorAndValue($operator, $second);
