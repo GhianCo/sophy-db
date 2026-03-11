@@ -14,7 +14,8 @@
             "email": "ghiancorx@gmail.com"
         }
     ],
-    "require": {
-        "ghianco/sophy-core": "1.4.7"
+    "require": {},
+    "suggest": {
+        "ghianco/sophy-core": "Compatible con sophy-core 1.4.7 para proyectos existentes."
     }
 }

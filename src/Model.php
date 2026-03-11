@@ -2,7 +2,7 @@
 
 namespace SophyDB;
 
-use Sophy\Exceptions\ConexionDBException;
+use SophyDB\Exceptions\DatabaseException;
 
 class Model
 {
@@ -73,7 +73,7 @@ class Model
             }
             return $this->attributes;
         } catch (\Exception $exception) {
-            throw ConexionDBException::showMessage($exception->getMessage());
+            throw DatabaseException::showMessage($exception->getMessage());
         }
     }
 }
